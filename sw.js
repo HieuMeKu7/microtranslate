@@ -1,5 +1,14 @@
-const CACHE = 'microtranslate-gh-v2.3';
-const SHELL = ['./', './index.html', './styles.css?v=2.3', './app.js?v=2.3', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'microtranslate-gh-v2.4';
+const SHELL = [
+  './',
+  './index.html',
+  './styles.css?v=2.4',
+  './app.js?v=2.4',
+  './ai.js?v=2.4',
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png'
+];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
@@ -13,7 +22,11 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const u = new URL(event.request.url);
-  if (u.hostname.endsWith('wikimedia.org') || u.hostname.endsWith('wikipedia.org') || u.hostname.endsWith('wikidata.org')) return;
+
+  // Never intercept live Wikimedia/CXServer traffic.
+  if (u.hostname.endsWith('wikimedia.org') ||
+      u.hostname.endsWith('wikipedia.org') ||
+      u.hostname.endsWith('wikidata.org')) return;
 
   if (event.request.mode === 'navigate') {
     event.respondWith(fetch(event.request).catch(() => caches.match('./index.html')));
