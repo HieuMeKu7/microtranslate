@@ -1,11 +1,12 @@
-const CACHE = 'microtranslate-gh-v2.5';
+const CACHE = 'microtranslate-gh-v2.6';
 const SHELL = [
   './',
   './index.html',
-  './styles.css?v=2.5',
-  './ai-byok.css?v=2.5',
-  './app.js?v=2.5',
-  './ai.js?v=2.5',
+  './styles.css?v=2.6',
+  './ai-byok.css?v=2.6',
+  './app.js?v=2.6',
+  './ai.js?v=2.6',
+  './proxy.js?v=2.6',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png'
@@ -27,7 +28,7 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   const u = new URL(request.url);
 
-  // Never interfere with live API traffic or any third-party BYOK endpoint.
+  // Never interfere with live Wikimedia, AI-provider, or proxy traffic.
   if (request.method !== 'GET' || u.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
