@@ -11,11 +11,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MicroTranslate">
-<link rel="stylesheet" href="./styles.css?v=2.3">
+<link rel="stylesheet" href="./styles.css?v=2.4">
 </head>
 <body>
 <header>
-  <h1>MicroTranslate <span class="small">v2.3</span></h1>
+  <h1>MicroTranslate <span class="small">v2.4</span></h1>
   <span id="where" class="pill"></span>
 </header>
 <main>
@@ -46,19 +46,36 @@
     <div id="empty" class="small" style="padding:18px 0;text-align:center">Bấm <b>Next</b> để lấy task.</div>
     <div id="task" class="hidden" style="margin-top:12px">
       <div id="kind" class="kind"></div><div id="title" class="title"></div><img id="image" class="preview hidden" alt=""><div id="source" class="source"></div><div id="links" class="links"></div>
+
+      <div class="ai-tools">
+        <button id="ai-suggest" type="button">✨ AI gợi ý</button>
+        <span class="small">Wikimedia MinT</span>
+      </div>
+      <div id="ai-panel" class="ai-panel hidden">
+        <div class="small">Gợi ý AI/MT — nên kiểm tra lại trước khi đăng</div>
+        <div id="ai-text" class="ai-text"></div>
+        <div class="row">
+          <button id="ai-apply" type="button" class="primary">Áp dụng bản dịch</button>
+          <button id="ai-again" type="button">Gợi ý lại</button>
+        </div>
+      </div>
+      <div id="ai-status" class="ai-status"></div>
+
       <label for="answer">Bản dịch</label><textarea id="answer" maxlength="250" placeholder="Nhập bản dịch ngắn…"></textarea><div id="count" class="counter">0 / 250</div>
       <div class="actions"><button id="skip" type="button">Bỏ qua</button><button id="publish" type="button" class="primary">Đăng & tiếp</button></div>
     </div>
     <div id="task-status" class="status">Sẵn sàng.</div><div id="stats" class="small" style="margin-top:8px">Đã đăng phiên này: 0</div>
   </section>
 
+  <details class="card"><summary>AI / bảo mật</summary><div class="small" style="margin-top:8px">Nút AI gợi ý dùng <b>Wikimedia MinT</b> qua CXServer, không cần API key riêng. Gợi ý chỉ được chép vào ô dịch khi bấm “Áp dụng bản dịch”; app không tự đăng nội dung AI.</div></details>
   <details class="card"><summary>GitHub Pages / bảo mật token</summary><div class="small" style="margin-top:8px">Trang này là static HTML, không chứa token trong source code. Nếu bật “Nhớ token”, access token chỉ được lưu trong <code>localStorage</code> của origin GitHub Pages này trên thiết bị hiện tại. Đừng commit token/client secret vào repository.</div></details>
 </main>
-<script src="./app.js?v=2.3" defer></script>
+<script src="./app.js?v=2.4" defer></script>
+<script src="./ai.js?v=2.4" defer></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('./sw.js?v=2.3').catch(function (err) { console.error('Service worker:', err); });
+    navigator.serviceWorker.register('./sw.js?v=2.4').catch(function (err) { console.error('Service worker:', err); });
   });
 }
 </script>
