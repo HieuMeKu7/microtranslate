@@ -11,11 +11,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MicroTranslate">
-<link rel="stylesheet" href="./styles.css?v=2.4">
+<link rel="stylesheet" href="./styles.css?v=2.5">
+<link rel="stylesheet" href="./ai-byok.css?v=2.5">
 </head>
 <body>
 <header>
-  <h1>MicroTranslate <span class="small">v2.4</span></h1>
+  <h1>MicroTranslate <span class="small">v2.5</span></h1>
   <span id="where" class="pill"></span>
 </header>
 <main>
@@ -30,6 +31,125 @@
     <div class="row" style="margin-top:10px"><button id="test-auth" type="button" class="primary">Test token</button><button id="clear-token" type="button" class="danger">Xóa token</button></div>
     <div id="auth-status" class="status">Paste access token rồi bấm “Test token”.</div>
   </section>
+
+  <details class="card" id="ai-config-card">
+    <summary>AI gợi ý / BYOK — cài đặt chi tiết</summary>
+    <div style="margin-top:10px">
+      <label for="ai-provider">Provider</label>
+      <select id="ai-provider">
+        <option value="mint">Wikimedia MinT — không cần key</option>
+        <option value="openai">OpenAI-compatible — BYOK</option>
+        <option value="generic">General JSON API — BYOK</option>
+      </select>
+      <div id="ai-provider-note" class="small ai-provider-note"></div>
+    </div>
+
+    <div id="ai-openai-config" class="ai-config-box hidden">
+      <strong>OpenAI-compatible</strong>
+      <div class="small ai-provider-note">Hỗ trợ Chat Completions phổ biến và Responses API. Với provider tương thích OpenAI khác, thay endpoint + model.</div>
+      <div class="ai-config-grid" style="margin-top:10px">
+        <div>
+          <label for="ai-openai-style">API style</label>
+          <select id="ai-openai-style"><option value="chat">Chat Completions</option><option value="responses">Responses</option></select>
+        </div>
+        <div>
+          <label for="ai-openai-model">Model</label>
+          <input id="ai-openai-model" autocomplete="off" spellcheck="false" placeholder="vd: gpt-5.6-luna hoặc model của provider">
+        </div>
+        <div class="ai-config-full">
+          <label for="ai-openai-endpoint">Full endpoint URL</label>
+          <input id="ai-openai-endpoint" inputmode="url" autocapitalize="none" spellcheck="false" placeholder="https://api.openai.com/v1/chat/completions">
+        </div>
+        <div class="ai-config-full">
+          <label for="ai-openai-key">API key</label>
+          <div class="ai-secret-row"><input id="ai-openai-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-… / provider key"><button id="ai-openai-clear-key" type="button" class="danger">Xóa key</button></div>
+          <label style="margin-top:7px;display:flex;gap:8px;align-items:center;font-size:12px"><input id="ai-openai-remember" type="checkbox" style="width:auto"> Nhớ key trên thiết bị này (localStorage)</label>
+        </div>
+        <div>
+          <label for="ai-temperature">Temperature (để trống = không gửi)</label>
+          <input id="ai-temperature" type="number" step="0.1" min="0" max="2" placeholder="0.2">
+        </div>
+        <div>
+          <label for="ai-max-tokens">Max output tokens (để trống = không gửi)</label>
+          <input id="ai-max-tokens" type="number" min="1" step="1" placeholder="128">
+        </div>
+      </div>
+      <details class="ai-advanced">
+        <summary>Advanced OpenAI-compatible</summary>
+        <div style="margin-top:9px">
+          <label for="ai-openai-headers">Extra headers JSON</label>
+          <textarea id="ai-openai-headers" spellcheck="false">{}</textarea>
+          <div class="ai-template-help">Không đặt key cố định ở đây. Dùng field API key phía trên.</div>
+          <label for="ai-openai-body" style="margin-top:9px">Extra body JSON</label>
+          <textarea id="ai-openai-body" spellcheck="false">{}</textarea>
+          <div class="ai-template-help">Object này merge sau body chuẩn nên có thể override tham số provider-specific.</div>
+        </div>
+      </details>
+      <div class="ai-warning">BYOK chạy ngay trong browser. Key không được commit vào GitHub, nhưng vẫn tồn tại phía client khi bạn nhập. Với OpenAI chính chủ, dùng key trực tiếp trong browser không phải cách lưu secret được khuyến nghị; nếu cần bảo mật chặt thì dùng backend/proxy riêng.</div>
+    </div>
+
+    <div id="ai-generic-config" class="ai-config-box hidden">
+      <strong>General JSON API</strong>
+      <div class="small ai-provider-note">Dành cho API không theo schema OpenAI. Bạn tự định nghĩa endpoint, headers, body template và JSON path để lấy text trả về.</div>
+      <div class="ai-config-grid" style="margin-top:10px">
+        <div class="ai-config-full">
+          <label for="ai-generic-endpoint">Full endpoint URL</label>
+          <input id="ai-generic-endpoint" inputmode="url" autocapitalize="none" spellcheck="false" placeholder="https://provider.example/v1/generate">
+        </div>
+        <div>
+          <label for="ai-generic-method">Method</label>
+          <select id="ai-generic-method"><option value="POST">POST</option><option value="PUT">PUT</option></select>
+        </div>
+        <div>
+          <label for="ai-generic-model">Model / deployment (optional)</label>
+          <input id="ai-generic-model" autocomplete="off" spellcheck="false" placeholder="model-id">
+        </div>
+        <div class="ai-config-full">
+          <label for="ai-generic-key">API key / token (optional)</label>
+          <div class="ai-secret-row"><input id="ai-generic-key" type="password" autocomplete="off" spellcheck="false" placeholder="provider secret"><button id="ai-generic-clear-key" type="button" class="danger">Xóa key</button></div>
+          <label style="margin-top:7px;display:flex;gap:8px;align-items:center;font-size:12px"><input id="ai-generic-remember" type="checkbox" style="width:auto"> Nhớ key trên thiết bị này (localStorage)</label>
+        </div>
+        <div class="ai-config-full">
+          <label for="ai-generic-headers">Headers JSON template</label>
+          <textarea id="ai-generic-headers" spellcheck="false">{"Authorization":"Bearer {{key}}","Content-Type":"application/json"}</textarea>
+          <div class="ai-template-help">Placeholder: <code>{{key}}</code>, <code>{{model}}</code>, <code>{{src}}</code>, <code>{{dst}}</code>, <code>{{title}}</code>, <code>{{source}}</code>, <code>{{system}}</code>, <code>{{prompt}}</code>.</div>
+        </div>
+        <div class="ai-config-full">
+          <label for="ai-generic-body">Body JSON template</label>
+          <textarea id="ai-generic-body" spellcheck="false">{"model":"{{model}}","messages":[{"role":"system","content":"{{system}}"},{"role":"user","content":"{{prompt}}"}]}</textarea>
+          <div class="ai-template-help">Placeholder được escape an toàn bên trong JSON string. Nếu API dùng schema khác, sửa template này.</div>
+        </div>
+        <div class="ai-config-full">
+          <label for="ai-generic-response-path">Response text JSON path</label>
+          <input id="ai-generic-response-path" autocapitalize="none" spellcheck="false" value="choices.0.message.content" placeholder="choices.0.message.content">
+          <div class="ai-template-help">Ví dụ: <code>choices.0.message.content</code>, <code>output_text</code>, <code>candidates.0.content.parts.0.text</code>. Để trống = auto-detect/common text hoặc raw text.</div>
+        </div>
+      </div>
+      <div class="ai-warning">General mode chỉ chạy nếu provider cho phép CORS từ trang GitHub Pages này. Browser không thể tự bypass CORS.</div>
+    </div>
+
+    <div id="ai-byok-common" class="ai-config-box hidden">
+      <strong>Prompt / request chung</strong>
+      <div class="ai-config-grid" style="margin-top:10px">
+        <div>
+          <label for="ai-timeout">Timeout (giây)</label>
+          <input id="ai-timeout" type="number" min="5" max="120" step="1" value="30">
+        </div>
+        <div></div>
+        <div class="ai-config-full">
+          <label for="ai-system-prompt">System prompt — detailed</label>
+          <textarea id="ai-system-prompt" class="prompt-text" spellcheck="false"></textarea>
+        </div>
+        <div class="ai-config-full">
+          <label for="ai-user-prompt">User prompt template</label>
+          <textarea id="ai-user-prompt" class="prompt-text" spellcheck="false"></textarea>
+          <div class="ai-template-help">Placeholder: <code>{{taskType}}</code>, <code>{{title}}</code>, <code>{{source}}</code>, <code>{{src}}</code>, <code>{{dst}}</code>.</div>
+        </div>
+      </div>
+      <div class="ai-config-actions"><button id="ai-save-config" type="button" class="primary">Lưu cài đặt AI</button><button id="ai-reset-config" type="button">Reset mặc định</button></div>
+      <div id="ai-config-status" class="ai-config-status"></div>
+    </div>
+  </details>
 
   <section class="card">
     <strong>Task</strong>
@@ -49,15 +169,12 @@
 
       <div class="ai-tools">
         <button id="ai-suggest" type="button">✨ AI gợi ý</button>
-        <span class="small">Wikimedia MinT</span>
+        <span id="ai-provider-label" class="ai-provider-badge">Wikimedia MinT</span>
       </div>
       <div id="ai-panel" class="ai-panel hidden">
-        <div class="small">Gợi ý AI/MT — nên kiểm tra lại trước khi đăng</div>
+        <div class="small">Gợi ý AI/MT — kiểm tra lại trước khi đăng</div>
         <div id="ai-text" class="ai-text"></div>
-        <div class="row">
-          <button id="ai-apply" type="button" class="primary">Áp dụng bản dịch</button>
-          <button id="ai-again" type="button">Gợi ý lại</button>
-        </div>
+        <div class="row"><button id="ai-apply" type="button" class="primary">Áp dụng bản dịch</button><button id="ai-again" type="button">Gợi ý lại</button></div>
       </div>
       <div id="ai-status" class="ai-status"></div>
 
@@ -67,15 +184,15 @@
     <div id="task-status" class="status">Sẵn sàng.</div><div id="stats" class="small" style="margin-top:8px">Đã đăng phiên này: 0</div>
   </section>
 
-  <details class="card"><summary>AI / bảo mật</summary><div class="small" style="margin-top:8px">Nút AI gợi ý dùng <b>Wikimedia MinT</b> qua CXServer, không cần API key riêng. Gợi ý chỉ được chép vào ô dịch khi bấm “Áp dụng bản dịch”; app không tự đăng nội dung AI.</div></details>
-  <details class="card"><summary>GitHub Pages / bảo mật token</summary><div class="small" style="margin-top:8px">Trang này là static HTML, không chứa token trong source code. Nếu bật “Nhớ token”, access token chỉ được lưu trong <code>localStorage</code> của origin GitHub Pages này trên thiết bị hiện tại. Đừng commit token/client secret vào repository.</div></details>
+  <details class="card"><summary>AI / bảo mật</summary><div class="small" style="margin-top:8px">MinT không cần key. BYOK key không nằm trong source/repo. Nếu bật “Nhớ key”, key được lưu vào <code>localStorage</code> của origin GitHub Pages trên thiết bị này. Không commit key vào GitHub. Gợi ý AI chỉ được chép vào ô dịch khi bấm “Áp dụng bản dịch”; app không tự publish.</div></details>
+  <details class="card"><summary>GitHub Pages / bảo mật Wikimedia token</summary><div class="small" style="margin-top:8px">Trang này là static HTML, không chứa Wikimedia token trong source code. Nếu bật “Nhớ token”, access token chỉ được lưu trong <code>localStorage</code> của origin GitHub Pages này trên thiết bị hiện tại. Đừng commit token/client secret vào repository.</div></details>
 </main>
-<script src="./app.js?v=2.4" defer></script>
-<script src="./ai.js?v=2.4" defer></script>
+<script src="./app.js?v=2.5" defer></script>
+<script src="./ai.js?v=2.5" defer></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('./sw.js?v=2.4').catch(function (err) { console.error('Service worker:', err); });
+    navigator.serviceWorker.register('./sw.js?v=2.5').catch(function (err) { console.error('Service worker:', err); });
   });
 }
 </script>
